@@ -258,33 +258,10 @@ class RFFEControllerBoard:
         self.board_socket.settimeout(5.0)
         self.board_socket.connect(board_address)
 
-    def get_switching_mode(self):
-        """This method returns the current switching mode. Its answers are one of the following
-        integers:
-        0: matched
-        1: direct
-        2: inverted
-        3: switching"""
-        self.board_socket.send(bytearray.fromhex("10 00 01 00"))
-        temp = self.board_socket.recv(1024)
-        return(temp[3])
-
-    def set_switching_mode(self, mode):
-        """Sets the switching mode of operation. The accepted arguments are the following integers:
-        0: matched
-        1: direct
-        2: inverted
-        3: switching
-        Other arguments will be desconsidered."""
-        if (mode in (0, 1, 2, 3)):
-            #self.board_socket.send(bytes.fromhex("20 00 02 00 0" + str(mode)))
-            self.board_socket.send(bytearray.fromhex("20 00 02 00 0" + str(mode)))
-            temp = self.board_socket.recv(1024)
-
     def get_attenuator_value(self):
         """This method returns the current attenuation value (in dB) as a floating-point number.
            The attenuation value will be between 0 dB and 31.5 dB, with a 0.5 dB step size."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 01"))
+        self.board_socket.send(bytearray.fromhex("10 00 01 00"))
         temp = self.board_socket.recv(1024)
         return(struct.unpack("<d", temp[3:])[0])
 
@@ -293,54 +270,54 @@ class RFFEControllerBoard:
         floating-point number representing the attenuation (in dB) between 0 dB and 31.5 dB, with a
         0.5 dB step size. Argument values other than these will be disconsidered."""
         #if (value in tuple(numpy.linspace(0, 31.5, 64))):
-        self.board_socket.send(bytearray.fromhex("20 00 09 01") + struct.pack("<d", value))
+        self.board_socket.send(bytearray.fromhex("20 00 09 00") + struct.pack("<d", value))
         temp = self.board_socket.recv(1024)
 
-    def get_temp1(self):
+    def get_temp_ac(self):
         """This method returns the temperature measured by the sensor present in the A/C
         front-end. The value returned is a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 01"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def get_temp_bd(self):
+        """This method returns the temperature measured by the sensor present in the B/D
+        front-end. The value returned is a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 02"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def get_temp_ac_setpoint(self):
+        """This method returns the temperature set-point for the A/C front-end temperature
+        controller. The returned value is a floating-point number in the Celsius degrees scale."""
         self.board_socket.send(bytearray.fromhex("10 00 01 03"))
         temp = self.board_socket.recv(1024)
         return(struct.unpack("<d", temp[3:])[0])
 
-    def get_temp2(self):
-        """This method returns the temperature measured by the sensor present in the B/D
-        front-end. The value returned is a floating-point number."""
+    def set_temp_ac_setpoint(self, value):
+        """Sets the temperature set-point for the A/C front-end temperature controller. The value
+        passed as the argument is a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 03") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_temp_bd_setpoint(self):
+        """This method returns the temperature set-point for the B/D front-end temperature
+        controller. The returned value is a floating-point number in the Celsius degrees scale."""
         self.board_socket.send(bytearray.fromhex("10 00 01 04"))
         temp = self.board_socket.recv(1024)
         return(struct.unpack("<d", temp[3:])[0])
 
-    def get_temp1_setpoint(self):
-        """This method returns the temperature set-point for the A/C front-end temperature
-        controller. The returned value is a floating-point number in the Celsius degrees scale."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 07"))
-        temp = self.board_socket.recv(1024)
-        return(struct.unpack("<d", temp[3:])[0])
-
-    def set_temp1_setpoint(self, value):
-        """Sets the temperature set-point for the A/C front-end temperature controller. The value
-        passed as the argument is a floating-point number."""
-        self.board_socket.send(bytearray.fromhex("20 00 09 07") + struct.pack("<d", value))
-        temp = self.board_socket.recv(1024)
-
-    def get_temp2_setpoint(self):
-        """This method returns the temperature set-point for the B/D front-end temperature
-        controller. The returned value is a floating-point number in the Celsius degrees scale."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 08"))
-        temp = self.board_socket.recv(1024)
-        return(struct.unpack("<d", temp[3:])[0])
-
-    def set_temp2_setpoint(self, value):
+    def set_temp_bd_setpoint(self, value):
         """Sets the temperature set-point for the B/D front-end temperature controller. The value
         passed as the argument is a floating-point number."""
-        self.board_socket.send(bytearray.fromhex("20 00 09 08") + struct.pack("<d", value))
+        self.board_socket.send(bytearray.fromhex("20 00 09 04") + struct.pack("<d", value))
         temp = self.board_socket.recv(1024)
 
     def get_temperature_control_status(self):
         """This method returns the temperature controller status as an integer. If this integer
         equals 0, it's because the temperature controller is off. Otherwise, if the value returned
         equals 1, this means the temperature controller is on."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 09"))
+        self.board_socket.send(bytearray.fromhex("10 00 01 05"))
         temp = self.board_socket.recv(1024)
         return(temp[3])
 
@@ -348,40 +325,38 @@ class RFFEControllerBoard:
         """Method used to turn on/off the temperature controller. For turning the controller on, the
         argument should be the integer 1. To turn the controller off, the argument should be 0."""
         if (status in (0, 1)):
-            self.board_socket.send(bytearray.fromhex("20 00 02 09 0" + str(status)))
+            self.board_socket.send(bytearray.fromhex("20 00 02 05 0" + str(status)))
             temp = self.board_socket.recv(1024)
 
-    def get_software_version(self):
-        """This method returns the RF front-end controller software version as a binary
-    string of characters."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 0F"))
-        temp = self.board_socket.recv(1024)
-        return(temp[3:10])
-
-    def get_output1_value(self):
+    def get_heater_ac_value(self):
         """This method returns the voltage signal to the heater in the A/C front-end as a
         floating-point number."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 0A"))
+        self.board_socket.send(bytearray.fromhex("10 00 01 06"))
         temp = self.board_socket.recv(1024)
         return(struct.unpack("<d", temp[3:])[0])
 
-    def set_output1_value(self, value):
+    def set_heater_ac_value(self, value):
         """Sets the voltage level to the heater in the A/C front-end. The value passed as the
         argument, a floating-point number, is the intended voltage for the heater."""
-        self.board_socket.send(bytearray.fromhex("20 00 09 0A") + struct.pack("<d", value))
+        self.board_socket.send(bytearray.fromhex("20 00 09 06") + struct.pack("<d", value))
         temp = self.board_socket.recv(1024)
 
-    def get_output2_value(self):
+    def get_heater_bd_value(self):
         """This method returns the voltage signal to the heater in the B/D front-end as a
         floating-point number."""
-        self.board_socket.send(bytearray.fromhex("10 00 01 0B"))
+        self.board_socket.send(bytearray.fromhex("10 00 01 07"))
         temp = self.board_socket.recv(1024)
         return(struct.unpack("<d", temp[3:])[0])
 
-    def set_output2_value(self, value):
+    def set_heater_bd_value(self, value):
         """Sets the voltage level to the heater in the B/D front-end. The value passed as the
         argument, a floating-point number, is the intended voltage for the heater."""
-        self.board_socket.send(bytearray.fromhex("20 00 09 0B") + struct.pack("<d", value))
+        self.board_socket.send(bytearray.fromhex("20 00 09 07") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def reset(self):
+        """This method resets the board software."""
+        self.board_socket.send(bytearray.fromhex("20 00 02 08 01"))
         temp = self.board_socket.recv(1024)
 
     def reprogram(self, file_path):
@@ -389,7 +364,7 @@ class RFFEControllerBoard:
         argument, a string, is the path to the binary file which corresponds to the mbed program
         that will be loaded in the device."""
         file = open(file_path, "rb")
-        self.board_socket.send(bytearray.fromhex("20 00 02 0D 01"))
+        self.board_socket.send(bytearray.fromhex("20 00 02 09 01"))
         temp = self.board_socket.recv(1024)
         while True:
             data = file.read(127)
@@ -397,16 +372,90 @@ class RFFEControllerBoard:
                 break
             elif (len(data) < 127):
                 data = data + (b"\n" * (127 - len(data)))
-            self.board_socket.send(bytearray.fromhex("20 00 80 0E") + data)
+            self.board_socket.send(bytearray.fromhex("20 00 80 0A") + data)
             temp = self.board_socket.recv(1024)
-        self.board_socket.send(bytearray.fromhex("20 00 02 0D 02"))
+        self.board_socket.send(bytearray.fromhex("20 00 02 09 02"))
         temp = self.board_socket.recv(1024)
         file.close()
 
-    def reset(self):
-        """This method resets the board software."""
-        self.board_socket.send(bytearray.fromhex("20 00 02 0C 01"))
+    def get_software_version(self):
+        """This method returns the RF front-end controller software version as a binary
+        string of characters."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 0B"))
         temp = self.board_socket.recv(1024)
+        return(temp[3:10])
+
+    def set_pid_ac_kc(self, value):
+        """Sets the PID Kc parameter in the A/C front-end. The value is passed as a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 0C") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_pid_ac_kc(self):
+        """This method returns the Kc parameter of the PID in the A/C front-end as a
+        floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 0C"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def set_pid_ac_taui(self, value):
+        """Sets the PID tauI parameter in the A/C front-end. The value is passed as a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 0D") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_pid_ac_taui(self):
+        """This method returns the tauI parameter of the PID in the A/C front-end as a
+        floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 0D"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def set_pid_ac_taud(self, value):
+        """Sets the PID tauD parameter in the A/C front-end. The value is passed as a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 0E") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_pid_ac_taud(self):
+        """This method returns the tauD parameter of the PID in the A/C front-end as a
+        floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 0E"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def set_pid_bd_kc(self, value):
+        """Sets the PID Kc parameter in the B/D front-end. The value is passed as a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 0F") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_pid_bd_kc(self):
+        """This method returns the Kc parameter of the PID in the B/D front-end as a
+        floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 0F"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def set_pid_bd_taui(self, value):
+        """Sets the PID tauI parameter in the B/D front-end. The value is passed as a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 10") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_pid_bd_taui(self):
+        """This method returns the tauI parameter of the PID in the B/D front-end as a
+        floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 10"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
+
+    def set_pid_bd_taud(self, value):
+        """Sets the PID tauD parameter in the B/D front-end. The value is passed as a floating-point number."""
+        self.board_socket.send(bytearray.fromhex("20 00 09 11") + struct.pack("<d", value))
+        temp = self.board_socket.recv(1024)
+
+    def get_pid_bd_taud(self):
+        """This method returns the tauD parameter of the PID in the B/D front-end as a
+        floating-point number."""
+        self.board_socket.send(bytearray.fromhex("10 00 01 11"))
+        temp = self.board_socket.recv(1024)
+        return(struct.unpack("<d", temp[3:])[0])
 
     def close_connection(self):
         """Close the socket connection to the board."""

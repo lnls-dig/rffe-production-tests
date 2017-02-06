@@ -371,10 +371,10 @@ else:
 
 #Temperature Measurement
 if metadata_param['temp']=="run":
-    temperature=rffe.get_temp1()
+    temperature=rffe.get_temp_ac()
     fail=0
     if (temperature < 5 or temperature >100):
-        temperature = rffe.get_temp2()
+        temperature = rffe.get_temp_bd()
         if (temperature < 5 or temperature > 100):
             fail=1
     temperature=round(temperature,2)

@@ -27,9 +27,9 @@ for rffe_numb in range(33,45,1):
     print ("Board "+RFFE_CONTROLLER_BOARD_IP+" passed attenuator test! ")
 
     #Temperature reading test
-    tmp1 = rffe.get_temp1()
-    tmp2 = rffe.get_temp2()
-    print ("Temperature -> 1: "+str(tmp1)+", 2: "+str(tmp2))
+    tmp_ac = rffe.get_temp_ac()
+    tmp_bd = rffe.get_temp_bd()
+    print ("Temperature -> A/C: "+str(tmp_ac)+", B/D: "+str(tmp_bd))
 
     #Test Reset
     #rffe.reset()

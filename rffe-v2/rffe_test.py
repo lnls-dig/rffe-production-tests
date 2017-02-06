@@ -275,29 +275,31 @@ def path_test():
 
 # Gets data for the four possible RF paths
 
-controller_board.set_switching_mode(1)
+## WARNING: set_switching_mode function is deprecated. The switching mode is controlled by the AFC FPGA and not the RFFE.
 
-file_content += "*** A (B) to A/C (B/D) path ***\r\n\r\n"
-switches_board.u1_set_rf1()
-switches_board.u2_set_rf1()
-path_test()
-
-file_content += "*** C (D) to C/A (D/B) path ***\r\n\r\n"
-switches_board.u1_set_rf2()
-switches_board.u2_set_rf2()
-path_test()
-
-controller_board.set_switching_mode(2)
-
-file_content += "*** A (B) to C/A (D/B) path ***\r\n\r\n"
-switches_board.u1_set_rf1()
-switches_board.u2_set_rf2()
-path_test()
-
-file_content += "*** C (D) to A/C (B/D) path ***\r\n\r\n"
-switches_board.u1_set_rf2()
-switches_board.u2_set_rf1()
-path_test()
+##controller_board.set_switching_mode(1)
+##
+##file_content += "*** A (B) to A/C (B/D) path ***\r\n\r\n"
+##switches_board.u1_set_rf1()
+##switches_board.u2_set_rf1()
+##path_test()
+##
+##file_content += "*** C (D) to C/A (D/B) path ***\r\n\r\n"
+##switches_board.u1_set_rf2()
+##switches_board.u2_set_rf2()
+##path_test()
+##
+##controller_board.set_switching_mode(2)
+##
+##file_content += "*** A (B) to C/A (D/B) path ***\r\n\r\n"
+##switches_board.u1_set_rf1()
+##switches_board.u2_set_rf2()
+##path_test()
+##
+##file_content += "*** C (D) to A/C (B/D) path ***\r\n\r\n"
+##switches_board.u1_set_rf2()
+##switches_board.u2_set_rf1()
+##path_test()
 
 
 ####################################################################################################

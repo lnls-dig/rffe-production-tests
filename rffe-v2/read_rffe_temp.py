@@ -37,11 +37,11 @@ while True:
                                 "Skipping it...\n")
                 continue
 
-            tmp1 = "{0:.6f}".format(rffe.get_temp1())
-            tmp2 = "{0:.6f}".format(rffe.get_temp2())
+            tmp_ac = "{0:.6f}".format(rffe.get_temp_ac())
+            tmp_bd = "{0:.6f}".format(rffe.get_temp_bd())
 
-            f.write('    '+str(tmp1)+'    '+str(tmp2))
-            print ('RFFE'+str(rffe_numb)+' temp -> CH1 ='+str(tmp1)+' CH2='+str(tmp2))
+            f.write('    '+str(tmp_ac)+'    '+str(tmp_bd))
+            print ('RFFE'+str(rffe_numb)+' temp -> A/C ='+str(tmp_ac)+' B/D='+str(tmp_bd))
     try:
         while time.time() - last_read_time < args.delay:
             sleep(1)

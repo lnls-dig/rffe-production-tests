@@ -22,6 +22,8 @@ if args.att:
 read_att = rffe.get_attenuator_value()
 print (str(read_att))
 
+## WARNING: set_switching_mode function is deprecated. The switching mode is controlled by the AFC FPGA and not the RFFE.
+
 #~ 
 #~ while True:
     #~ for sw in sw_sweep:
