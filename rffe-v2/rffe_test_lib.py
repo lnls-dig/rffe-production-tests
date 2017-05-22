@@ -10,7 +10,7 @@ import serial
 import socket
 import struct
 import time
-
+import re
 
 ####################################################################################################
 #
@@ -361,24 +361,36 @@ class RFFEControllerBoard:
         self.board_socket.send(bytearray.fromhex("20 00 02 08 01"))
         temp = self.board_socket.recv(1024)
 
-    def reprogram(self, file_path):
+    def reprogram(self, file_path, version):
         """This method reprograms the mbed device on the RF front-end controller board. The
         argument, a string, is the path to the binary file which corresponds to the mbed program
         that will be loaded in the device."""
-        file = open(file_path, "rb")
-        self.board_socket.send(bytearray.fromhex("20 00 02 09 01"))
-        temp = self.board_socket.recv(1024)
-        while True:
-            data = file.read(127)
-            if (not data):
-                break
-            elif (len(data) < 127):
-                data = data + (b"\n" * (127 - len(data)))
-            self.board_socket.send(bytearray.fromhex("20 00 80 0A") + data)
+
+        major, minor, patch = map(int,re.split('[., _]',version))
+
+        with open(file_path, "rb") as f:
+            msg = bytearray.fromhex("20 00 80 0A")
+            #Send firmware new version
+            msg.extend([major,minor,patch])
+            #Pad
+            msg.extend(b'\0'*(128+3-len(msg)))
+            self.board_socket.send(msg)
             temp = self.board_socket.recv(1024)
-        self.board_socket.send(bytearray.fromhex("20 00 02 09 02"))
-        temp = self.board_socket.recv(1024)
-        file.close()
+
+            self.board_socket.send(bytearray.fromhex("20 00 02 09 01"))
+            temp = self.board_socket.recv(1024)
+
+            while True:
+                data = f.read(127)
+                if (not data):
+                    break
+                elif (len(data) < 127):
+                    data = data + (b"\xFF" * (127 - len(data)))
+                self.board_socket.send(bytearray.fromhex("20 00 80 0A") + data)
+                temp = self.board_socket.recv(1024)
+
+            self.board_socket.send(bytearray.fromhex("20 00 02 09 02"))
+            temp = self.board_socket.recv(1024)
 
     def get_software_version(self):
         """This method returns the RF front-end controller software version as a binary
