@@ -249,14 +249,16 @@ class AgilentE5061B:
 class RFFEControllerBoard:
     """Class used to send commands and acquire data from the RF front-end controller board."""
 
-    def __init__(self, ip):
+    def __init__(self, ip, port=6791):
         """Class constructor. Here the socket connection to the board is initialized. The argument
         required is the IP adress of the instrument (string)."""
-        board_address = ((ip, 6791))
+        self.ip = ip
+        self.port = 6791
+
         self.board_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.board_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.board_socket.settimeout(5.0)
-        self.board_socket.connect(board_address)
+        self.board_socket.connect((self.ip,self.port))
 
     def get_attenuator_value(self):
         """This method returns the current attenuation value (in dB) as a floating-point number.
