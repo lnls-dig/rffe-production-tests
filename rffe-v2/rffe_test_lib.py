@@ -471,6 +471,12 @@ class RFFEControllerBoard:
         temp = self.board_socket.recv(1024)
         return(struct.unpack("<d", temp[3:])[0])
 
+    def get_mac_address(self):
+        """This method returns the MBED MAC_Address as a string"""
+        self.board_socket.send(bytearray.fromhex("10 00 01 13"))
+        temp = self.board_socket.recv(1024)
+        return(temp[3:20])
+
     def close_connection(self):
         """Close the socket connection to the board."""
         self.board_socket.close()
